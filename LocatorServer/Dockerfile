@@ -7,10 +7,9 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim AS build
 WORKDIR /src
-COPY ["LocatorServer/LocatorServer.csproj", "LocatorServer/"]
-RUN dotnet restore "LocatorServer/LocatorServer.csproj"
 COPY . .
-WORKDIR "/src/LocatorServer"
+RUN dotnet restore "LocatorServer.csproj"
+WORKDIR "/src"
 RUN dotnet build "LocatorServer.csproj" -c Release -o /app/build
 
 FROM build AS publish
