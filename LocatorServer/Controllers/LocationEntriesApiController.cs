@@ -15,9 +15,24 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace LocatorServer.Controllers
 {
+    /*
+     * 
+     * 
+     * There is a pretty annoying "bug" in aspnet core 5 where using both mvc and webapi will
+     * cause the webapi functions to redirect to the login page instead of just returning
+     * 401.
+     * 
+     * Ideally, I would just throw an [Authorize(Roles="authorized")] on the class, but
+     * instead I have to manually return Unauthorized for each method.  This is fine, but
+     * should not be ignored in the future!!!!!
+     * 
+     * https://github.com/dotnet/aspnetcore/issues/9039
+     * 
+     * 
+     */
+
     [Route("api/location")]
     [ApiController]
-    [Authorize]
     public class LocationEntriesApiController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -43,7 +58,7 @@ namespace LocatorServer.Controllers
             public LocationEntryViewModel(LocationEntry entry)
             {
                 ID = entry.ID;
-                Author = entry.Author?.UserName ?? "";
+                Author = entry.Author?.RealName ?? "";
                 Created = entry.Created;
                 Location = entry.Location;
                 SKU = entry.SKU;
@@ -69,6 +84,11 @@ namespace LocatorServer.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<LocationEntryViewModel>>> GetLocationEntry()
         {
+            if (!User.IsInRole("authorized"))
+            {
+                return Unauthorized();
+            }
+
             return await _context.LocationEntry.Include(l => l.Author).Select(l => new LocationEntryViewModel(l)).ToListAsync();
         }
 
@@ -76,6 +96,11 @@ namespace LocatorServer.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<LocationEntryViewModel>> GetLocationEntry(long id)
         {
+            if (!User.IsInRole("authorized"))
+            {
+                return Unauthorized();
+            }
+
             var locationEntry = await _context.LocationEntry.Include(l => l.Author).FirstOrDefaultAsync(l => l.ID == id);
 
             if (locationEntry == null)
@@ -89,6 +114,11 @@ namespace LocatorServer.Controllers
         [HttpGet("search")]
         public async Task<ActionResult<IEnumerable<LocationEntryViewModel>>> Search(string location, string sku)
         {
+            if (!User.IsInRole("authorized"))
+            {
+                return Unauthorized();
+            }
+
             return await _context.LocationEntry.Include(l => l.Author).Where(l => l.Location == location && l.SKU == sku).Select(l => new LocationEntryViewModel(l)).ToListAsync();
         }
 
@@ -128,11 +158,16 @@ namespace LocatorServer.Controllers
         [HttpPost]
         public async Task<ActionResult<LocationEntryViewModel>> PostLocationEntry(LocationEntryViewModel locationEntryViewModel)
         {
+            if (!User.IsInRole("authorized"))
+            {
+                return Unauthorized();
+            }
+
             locationEntryViewModel.Created = DateTime.Now;
             var model = locationEntryViewModel.Model();
             var user = _context.Users.FirstOrDefault(u => u.Email == HttpContext.User.Identity.Name);
             model.Author = user;
-            locationEntryViewModel.Author = model.Author?.UserName ?? "";
+            locationEntryViewModel.Author = model.Author?.RealName ?? "";
 
             _context.Add(model);
             await _context.SaveChangesAsync();
@@ -144,6 +179,11 @@ namespace LocatorServer.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteLocationEntry(long id)
         {
+            if (!User.IsInRole("authorized"))
+            {
+                return Unauthorized();
+            }
+
             var user = _context.Users.FirstOrDefault(u => u.Email == HttpContext.User.Identity.Name);
 
             var locationEntry = await _context.LocationEntry.FindAsync(id);

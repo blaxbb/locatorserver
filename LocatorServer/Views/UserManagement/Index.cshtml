@@ -1,5 +1,4 @@
-﻿@model IEnumerable<IdentityUser>
-@using Microsoft.AspNetCore.Identity;
+﻿@model IEnumerable<LocatorUser>
 
 <h2>User Management</h2>
 <table class="table">
@@ -7,6 +6,9 @@
         <tr>
             <th>
                 @Html.DisplayNameFor(model => model.UserName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RealName)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Email)
@@ -23,6 +25,9 @@
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => user.UserName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => user.RealName)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => user.Email)

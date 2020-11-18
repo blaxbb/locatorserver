@@ -1,4 +1,5 @@
 ﻿using LocatorServer.Data;
+using LocatorServer.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -13,12 +14,14 @@ namespace LocatorServer.Controllers
     [Authorize(Roles = "admin")]
     public class UserManagementController : Controller
     {
-        private readonly UserManager<IdentityUser> UserManager;
+        private readonly UserManager<LocatorUser> UserManager;
+        private readonly SignInManager<LocatorUser> SignInManager;
         private readonly ApplicationDbContext DbContext;
-        public UserManagementController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public UserManagementController(ApplicationDbContext context, UserManager<LocatorUser> userManager, SignInManager<LocatorUser> signInManager)
         {
             UserManager = userManager;
             DbContext = context;
+            SignInManager = signInManager;
         }
 
         // GET: UserManagementController
@@ -60,6 +63,7 @@ namespace LocatorServer.Controllers
             }
             var roles = await UserManager.GetRolesAsync(user);
             ViewBag.AdminRole = roles.Contains("admin");
+            ViewBag.AuthRole = roles.Contains("authorized");
             
             return View(user);
         }
@@ -67,7 +71,7 @@ namespace LocatorServer.Controllers
         // POST: UserManagementController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> EditAsync(string id, [Bind("Id", "UserName", "Email", "EmailConfirmed")]IdentityUser user, bool AdminRole)
+        public async Task<ActionResult> EditAsync(string id, [Bind("Id", "UserName", "RealName", "Email", "EmailConfirmed")]LocatorUser user, bool AdminRole, bool AuthRole)
         {
             if(id != user.Id)
             {
@@ -88,19 +92,39 @@ namespace LocatorServer.Controllers
                     existing.UserName = user.UserName;
                     existing.Email = user.Email;
                     existing.EmailConfirmed = user.EmailConfirmed;
+                    existing.RealName = user.RealName;
 
                     await UserManager.UpdateAsync(existing);
-
+                    //
+                    // If roles change to take away access, invalidate their login and force them to log in again
+                    // this should happen infrequently, so not that much of a problem ¯\_(ツ)_/¯
+                    //
                     if (AdminRole && !roles.Contains("admin"))
                     {
                         //add admin
                         await UserManager.AddToRoleAsync(existing, "admin");
+                        await UserManager.UpdateSecurityStampAsync(existing);
                     }
-                    else if (roles.Contains("admin"))
+                    else if (!AdminRole && roles.Contains("admin"))
                     {
                         //remove admin
                         await UserManager.RemoveFromRoleAsync(existing, "admin");
+                        await UserManager.UpdateSecurityStampAsync(existing);
                     }
+
+                    if (AuthRole && !roles.Contains("authorized"))
+                    {
+                        //add auth
+                        await UserManager.AddToRoleAsync(existing, "authorized");
+                        await UserManager.UpdateSecurityStampAsync(existing);
+                    }
+                    else if (!AuthRole && roles.Contains("authorized"))
+                    {
+                        //remove auth
+                        await UserManager.RemoveFromRoleAsync(existing, "authorized");
+                        await UserManager.UpdateSecurityStampAsync(existing);
+                    }
+
                 }
                 catch(Exception e)
                 {

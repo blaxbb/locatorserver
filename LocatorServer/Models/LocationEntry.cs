@@ -11,7 +11,7 @@ namespace LocatorServer.Models
     {
         public long ID { get; set; }
         [DisplayFormat(NullDisplayText = "None")]
-        public virtual IdentityUser Author { get; set; }
+        public virtual LocatorUser Author { get; set; }
         [DataType(DataType.DateTime)]
         public DateTime Created { get; set; }
         public string Location { get; set; }

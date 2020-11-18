@@ -18,6 +18,8 @@ using LocatorServer.Controllers;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using LocatorServer.Models;
+using System.Diagnostics;
 
 namespace LocatorServer
 {
@@ -40,7 +42,7 @@ namespace LocatorServer
             );
             services.AddDatabaseDeveloperPageExceptionFilter();
 
-            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            services.AddDefaultIdentity<LocatorUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
@@ -58,37 +60,7 @@ namespace LocatorServer
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "LocatorServer", Version = "v1" });
             });
 
-            services.ConfigureApplicationCookie(o =>
-            {
-                o.Events = new CookieAuthenticationEvents()
-                {
-                    OnRedirectToLogin = (ctx) =>
-                    {
-                        if (ctx.Request.Path.StartsWithSegments("/api") && ctx.Response.StatusCode == 200)
-                        {
-                            ctx.Response.StatusCode = 401;
-                        }
-                        else
-                        {
-                            ctx.Response.StatusCode = 304;
-                            ctx.Response.Redirect("Identity/Account/login");
-                        }
-                        return Task.CompletedTask;
-                    },
-                    OnRedirectToAccessDenied = (ctx) =>
-                    {
-                        if (ctx.Request.Path.StartsWithSegments("/api") && ctx.Response.StatusCode == 200)
-                        {
-                            ctx.Response.StatusCode = 403;
-                        }
-                        else
-                        {
-                            ctx.Response.StatusCode = 304;
-                        }
-                        return Task.CompletedTask;
-                    }
-                };
-            });
+            services.AddAuthentication();
 
             services.AddControllers().AddJsonOptions(options =>
             {
