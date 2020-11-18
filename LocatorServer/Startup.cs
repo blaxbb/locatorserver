@@ -35,7 +35,11 @@ namespace LocatorServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            var connection = @"Server=db;Database=master;User=sa;Password=Your_password123;";
+            services.AddOptions();
+            services.Configure<SecretsConfiguration>(Configuration.GetSection(SecretsConfiguration.Secrets));
+
+            var secrets = Configuration.GetSection(SecretsConfiguration.Secrets).Get<SecretsConfiguration>();
+            var connection = $"Server=db;Database=master;User=sa;Password={secrets.DbPassword};";
 
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connection)

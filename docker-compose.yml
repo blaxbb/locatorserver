@@ -6,8 +6,12 @@ services:
     build:
       context: .
       dockerfile: LocatorServer/Dockerfile
+    environment:
+        Secrets__SharedPassword: "SharedSecret"
+        Secrets__DbPassword: "Your_password123"
     depends_on:
       - db
+      - mail
   db:
     image: "mcr.microsoft.com/mssql/server"
     environment:

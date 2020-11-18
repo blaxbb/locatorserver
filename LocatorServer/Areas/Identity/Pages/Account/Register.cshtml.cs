@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using LocatorServer.Services;
 
 namespace LocatorServer.Areas.Identity.Pages.Account
 {
@@ -24,17 +26,20 @@ namespace LocatorServer.Areas.Identity.Pages.Account
         private readonly UserManager<LocatorUser> _userManager;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly IOptions<SecretsConfiguration> _secretsOptions;
 
         public RegisterModel(
             UserManager<LocatorUser> userManager,
             SignInManager<LocatorUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            IOptions<SecretsConfiguration> secretsOptions)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _secretsOptions = secretsOptions;
         }
 
         [BindProperty]
@@ -82,8 +87,8 @@ namespace LocatorServer.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
-                //I swear this will not make it to production, I just want to commit stuff now
-                bool sharedSecretCorrect = Input.SharedSecret == "SHARED SECRET";
+                var sharedSecret = _secretsOptions.Value.SharedPassword;
+                bool sharedSecretCorrect = Input.SharedSecret == sharedSecret;
 
                 var user = new LocatorUser { UserName = Input.Email, Email = Input.Email, RealName = Input.RealName };
                 if (sharedSecretCorrect)
