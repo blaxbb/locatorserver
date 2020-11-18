@@ -1,0 +1,20 @@
+version: '3.4'
+
+services:
+  locatorserver:
+    image: ${DOCKER_REGISTRY-}locatorserver
+    build:
+      context: .
+      dockerfile: LocatorServer/Dockerfile
+    depends_on:
+      - db
+  db:
+    image: "mcr.microsoft.com/mssql/server"
+    environment:
+      SA_PASSWORD: "Your_password123"
+      ACCEPT_EULA: "Y"
+  mail:
+    image: bytemark/smtp
+    restart: always
+    environment:
+      MAILNAME: "bbarrettnas.duckdns.org"

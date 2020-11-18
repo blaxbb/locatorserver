@@ -1,0 +1,109 @@
+﻿@model IEnumerable<LocatorServer.Models.LocationEntry>
+@using X.PagedList.Mvc.Core;
+@using X.PagedList;
+
+<link href="/Content/PagedList.css" rel="stylesheet" type="text/css" />
+
+@{
+    ViewData["Title"] = "Locations";
+}
+
+<h1>Locations</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+@using (Html.BeginForm())
+{
+    <p>
+        Filter by location @Html.TextBox("LocationFilter")
+        <input type="submit" value="Search" />
+    </p>
+}
+@using (Html.BeginForm())
+{
+    <p>
+        Filter by SKU @Html.TextBox("SkuFilter")
+        <input type="submit" value="Search" />
+    </p>
+}
+@using (Html.BeginForm())
+{
+    <p>
+        Filter by Author @Html.TextBox("AuthorFilter")
+        <input type="submit" value="Search" />
+    </p>
+}
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.ActionLink("Created", "Index", new { sort = ViewBag.SortParam })
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Author)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Location)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SKU)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.X)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Y)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Created)
+                </td>
+                <td>
+                    @if (item.Author != null)
+                    {
+                        @Html.DisplayFor(modelItem => item.Author.UserName)
+                    }
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Location)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.SKU)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.X)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Y)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.ID">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@Html.PagedListPager((IPagedList)Model, page => Url.Action("Index",
+    new
+    {
+        page,
+        locationFilter = ViewBag.CurrentLocationFilter,
+        skuFilter = ViewBag.CurrentSkuFilter,
+        authorFilter = ViewBag.CurrentAuthorFilter
+    }),
+    new X.PagedList.Mvc.Core.Common.PagedListRenderOptions()
+    {
+        LiElementClasses = new string[] { "page-item" },
+        PageClasses = new string[] { "page-link" }
+    }
+)
