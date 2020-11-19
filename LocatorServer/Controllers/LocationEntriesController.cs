@@ -44,7 +44,7 @@ namespace LocatorServer.Controllers
 
             if (!string.IsNullOrWhiteSpace(authorFilter))
             {
-                result = result.Where(l => l.Author.UserName.Contains(authorFilter));
+                result = result.Where(l => l.Author.RealName.Contains(authorFilter));
             }
 
             switch (sort)

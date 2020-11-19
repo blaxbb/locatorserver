@@ -10,29 +10,13 @@
 
 <h1>Locations</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-@using (Html.BeginForm())
+@using (Html.BeginForm(FormMethod.Post, new { @class = "form-inline mb-2" }))
 {
-    <p>
-        Filter by location @Html.TextBox("LocationFilter")
-        <input type="submit" value="Search" />
-    </p>
-}
-@using (Html.BeginForm())
-{
-    <p>
-        Filter by SKU @Html.TextBox("SkuFilter")
-        <input type="submit" value="Search" />
-    </p>
-}
-@using (Html.BeginForm())
-{
-    <p>
-        Filter by Author @Html.TextBox("AuthorFilter")
-        <input type="submit" value="Search" />
-    </p>
+    @Html.TextBox("LocationFilter", (string)ViewBag.CurrentLocationFilter, new { @class = "form-control mr-2", placeholder = "Location" })
+    @Html.TextBox("SkuFilter", (string)ViewBag.CurrentSkuFilter, new { @class = "form-control mr-2", placeholder = "SKU" })
+    @Html.TextBox("AuthorFilter", (string)ViewBag.CurrentAuthorFilter, new { @class = "form-control mr-2", placeholder = "Author" })
+    <input type="submit" class="btn btn-primary mr-2" value="Search" />
+    <a class="btn btn-primary" asp-action="Create">Create New</a>
 }
 <table class="table">
     <thead>
@@ -68,7 +52,7 @@
                 <td>
                     @if (item.Author != null)
                     {
-                        @Html.DisplayFor(modelItem => item.Author.UserName)
+                        @Html.DisplayFor(modelItem => item.Author.RealName)
                     }
                 </td>
                 <td>
